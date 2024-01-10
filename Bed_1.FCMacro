@@ -1,0 +1,86 @@
+import FreeCAD as App
+import Part
+import FreeCADGui as Gui
+
+def create_bed():
+    # Create a new document named "Bed_1"
+    App.newDocument("Bed_1")
+
+    # Create base
+    base_length = 200  # Adjust as needed
+    base_width = 150   # Adjust as needed
+    base_height = 20   # Adjust as needed
+    base = Part.makeBox(base_length, base_width, base_height)
+
+    # Create cavity for mattress
+    cavity_length = 180  # Increase for a larger recess
+    cavity_width = 130   # Increase for a larger recess
+    cavity_height = 15   # Adjust as needed
+    cavity_position = App.Vector((base_length - cavity_length) / 2, (base_width - cavity_width) / 2, base_height - cavity_height)
+
+    cavity = Part.makeBox(cavity_length, cavity_width, cavity_height)
+    cavity.translate(cavity_position)
+
+    # Cut the cavity from the base
+    base_with_cavity = base.cut(cavity)
+
+    # Create legs
+    leg_width = 20
+    leg_height = 40  # Adjust as needed
+    leg_positions = [
+        (0, 0, -leg_height),
+        (base_length - leg_width, 0, -leg_height),
+        (base_length - leg_width, base_width - leg_width, -leg_height),
+        (0, base_width - leg_width, -leg_height),
+    ]
+
+    legs = []
+    for pos in leg_positions:
+        leg = Part.makeBox(leg_width, leg_width, leg_height)
+        leg.translate(App.Vector(pos))
+        legs.append(leg)
+
+    # Combine base with cavity and legs
+    bed_frame = base_with_cavity.fuse(legs)
+
+    # Create headboard with matching thickness
+    headboard_thickness = base_height  # Set the headboard thickness to match the carved recess
+    headboard_length = 10  # Adjust as needed
+    headboard_width = base_width
+    headboard_height = 80  # Adjust as needed
+    headboard_position = App.Vector(0, 0, base_height)
+
+    headboard = Part.makeBox(headboard_length, headboard_width, headboard_height)
+    headboard.translate(headboard_position)
+
+    # Create queen-sized mattress with doubled height
+    mattress_length = cavity_length
+    mattress_width = cavity_width
+    mattress_height = 30  # Doubled height, adjust as needed
+    mattress_position = App.Vector(cavity_position.x, cavity_position.y, base_height - cavity_height)
+
+    mattress = Part.makeBox(mattress_length, mattress_width, mattress_height)
+    mattress.translate(mattress_position)
+
+    # Display the results as separate objects
+    App.activeDocument().addObject("Part::Feature", "BedFrame")
+    App.activeDocument().BedFrame.Shape = bed_frame
+    App.activeDocument().BedFrame.ViewObject.ShapeColor = (1.0, 0.0, 0.0)  # Set color to red
+
+    App.activeDocument().addObject("Part::Feature", "Headboard")
+    App.activeDocument().Headboard.Shape = headboard
+    App.activeDocument().Headboard.ViewObject.ShapeColor = (1.0, 0.0, 0.0)  # Set color to red
+
+    App.activeDocument().addObject("Part::Feature", "Mattress")
+    App.activeDocument().Mattress.Shape = mattress
+    App.activeDocument().Mattress.ViewObject.ShapeColor = (0.0, 0.0, 1.0)  # Set color to blue
+
+    # Center the view on the entire object
+    Gui.SendMsgToActiveView("ViewFit")
+
+    # Set the view to orthographic
+    Gui.runCommand("Std_ViewIsometric", 0)
+
+    App.activeDocument().recompute()
+
+create_bed()

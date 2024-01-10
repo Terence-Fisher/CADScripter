@@ -1,0 +1,46 @@
+import FreeCAD as App
+import Part
+import math
+
+def create_solid_lamp():
+    # Create a new document
+    doc = App.newDocument()
+
+    # Lamp base
+    base_radius = 5.0
+    base_height = 2.0
+    base = Part.makeCylinder(base_radius, base_height)
+
+    # Lamp stand
+    stand_radius = 0.5
+    stand_height = 15.0
+    stand = Part.makeCylinder(stand_radius, stand_height)
+
+    # Lampshade (outer cone)
+    shade_radius_top_outer = 6.0
+    shade_radius_bottom_outer = 4.0
+    shade_height_outer = 10.0
+    shade_outer = Part.makeCone(shade_radius_bottom_outer, shade_radius_top_outer, shade_height_outer)
+
+    # Lampshade (inner cone)
+    shade_radius_top_inner = 3.0  # Adjust the inner radius as needed
+    shade_radius_bottom_inner = 0.1  # Small radius to make it solid
+    shade_height_inner = 9.0  # Adjust the inner height as needed
+    shade_inner = Part.makeCone(shade_radius_bottom_inner, shade_radius_top_inner, shade_height_inner)
+
+    # Combine all parts to form the lamp
+    base.translate(App.Vector(0, 0, stand_height))  # Move the base to the bottom of the stand
+    stand.translate(App.Vector(0, 0, base_height))  # Move the stand up to join the base
+    lamp = base.fuse(stand).fuse(shade_outer.cut(shade_inner))
+
+    # Create a FreeCAD object and set its shape
+    obj = doc.addObject("Part::Feature", "Solid_Lamp")
+    obj.Shape = lamp
+
+    # Update the document and show the object
+    doc.recompute()
+    App.ActiveDocument.recompute()
+    Gui.SendMsgToActiveView("ViewFit")
+
+# Call the function to create the solid lamp
+create_solid_lamp()

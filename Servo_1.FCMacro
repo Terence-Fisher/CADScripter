@@ -1,0 +1,37 @@
+import FreeCAD as App
+import Part
+
+def createServo():
+    plate = Part.makeBox(40, 40, 5, App.Vector(-20, -20, 0))
+    hole1 = Part.makeCylinder(1.5, 5, App.Vector(-15, -15, 0))
+    hole2 = Part.makeCylinder(1.5, 5, App.Vector(-15, 15, 0))
+    hole3 = Part.makeCylinder(1.5, 5, App.Vector(15, 15, 0))
+    hole4 = Part.makeCylinder(1.5, 5, App.Vector(15, -15, 0))
+    
+    faceplate = plate.cut(hole1)
+    faceplate = faceplate.cut(hole2)
+    faceplate = faceplate.cut(hole3)
+    faceplate = faceplate.cut(hole4)
+    
+    motorbody = Part.makeCylinder(17.5, 60, App.Vector(0, 0, 5))
+    shaft = Part.makeCylinder(3.175, 15, App.Vector(0, 0, -15))
+    
+    servo = motorbody.fuse(faceplate)
+    servo = servo.fuse(shaft)
+    servo.translate(App.Vector(-20, -20, 0))
+    servo.rotate(App.Vector(0, 0, 0), App.Vector(0, 1, 0), -90)
+    
+    # Create a document in FreeCAD
+    doc = App.newDocument()
+
+    # Add the servo part to the document with the label "servo_1"
+    servo_object = doc.addObject("Part::Feature", "Servo_1")
+    servo_object.Shape = servo
+
+    # Show the object in the FreeCAD interface
+    doc.recompute()
+
+    print("Servo part 'Servo_1' created successfully.")
+
+# Call the function to create the servo part
+createServo()

@@ -1,0 +1,58 @@
+import FreeCAD as App
+import Part
+import math
+import Draft
+
+def create_football():
+    # Create a new document
+    App.newDocument()
+
+    # Define football parameters
+    equatorial_radius = 30.0  # Adjust as needed
+    polar_radius = 15.0  # Adjust as needed
+    meridians = 50  # Adjust for smoother surface
+    parallels = 25
+
+    # Create parametric equations for the football shape
+    u_values = [2 * math.pi * u / meridians for u in range(meridians + 1)]
+    v_values = [math.pi * v / (parallels - 1) for v in range(parallels)]
+
+    # Create vertex coordinates using the football shape formula
+    vertices = [(equatorial_radius * math.cos(u) * math.sin(v),
+                 polar_radius * math.sin(u) * math.sin(v),
+                 polar_radius * (1 + math.cos(v)))
+                for u in u_values for v in v_values]
+
+    # Create faces
+    faces = []
+    for i in range(meridians):
+        for j in range(parallels - 1):
+            v1 = i * parallels + j
+            v2 = v1 + 1
+            v3 = (i + 1) * parallels + j
+            v4 = v3 + 1
+
+            faces.append([v1, v2, v4, v3])
+
+    # Create the Part.Face objects
+    shell = Part.makeShell([Part.Face(Part.makePolygon([vertices[v] for v in face])) for face in faces])
+
+    # Create the Part.Solid object
+    football_solid = Part.Solid(shell)
+
+    # Display the result
+    App.activeDocument().addObject("Part::Feature", "Football")
+    App.activeDocument().Football.Shape = football_solid
+    App.activeDocument().Football.ViewObject.ShapeColor = (1.0, 0.0, 0.0)  # Set color to red
+
+    # Set view orientation to orthographic
+    Gui.activeDocument().activeView().viewAxometric()
+
+    # Set the view to fit all
+    Gui.activeDocument().activeView().viewIsometric()
+    Gui.SendMsgToActiveView("ViewFit")
+
+    App.activeDocument().recompute()
+
+# Call the function to create the football shape
+create_football()
